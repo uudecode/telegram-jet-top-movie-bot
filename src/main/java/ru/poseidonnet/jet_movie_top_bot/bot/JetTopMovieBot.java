@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -30,10 +31,11 @@ public class JetTopMovieBot extends TelegramLongPollingBot {
     public JetTopMovieBot(@Value("${telegram.bot.token}") String token,
                           @Value("${telegram.bot.name}") String name,
                           @Value("${telegram.bot.poolSize:50}") int poolSize,
+                          DefaultBotOptions options,
                           MessageProcessingService messageProcessingService,
                           CommandService commandService,
                           WaitArgsService waitArgsService) {
-        super(token);
+        super(options, token);
         this.name = name;
         this.messageProcessingService = messageProcessingService;
         this.commandService = commandService;

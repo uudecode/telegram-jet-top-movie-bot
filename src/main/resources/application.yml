@@ -2,6 +2,11 @@ telegram:
   bot:
     token: ${TELEGRAM_BOT_TOKEN}
     name: ${TELEGRAM_BOT_NAME}
+    proxy:
+      enabled: ${USE_PROXY:true}
+      host: ${PROXY_HOST:127.0.0.1}
+      port: ${PROXY_PORT:3128}
+      type: ${PROXY_TYPE:HTTP}
 
 kinopoisk:
   url: https://api.kinopoisk.dev
@@ -10,3 +15,14 @@ kinopoisk:
 backup:
   path: /usr/local/var/db/db.json
 
+logging:
+  level:
+    root: INFO
+#    ru.poseidonnet: DEBUG
+#    org.springframework.web: ERROR
+#    org.telegram: DEBUG
+#    okhttp3: DEBUG
+#    org.apache.http: DEBUG
+#    org.springframework.cloud.openfeign: TRACE
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(%logger{36}){cyan} - %msg%n"
