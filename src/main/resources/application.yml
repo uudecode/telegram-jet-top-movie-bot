@@ -22,5 +22,7 @@ logging:
     org.springframework.web: ERROR
     org.telegram: DEBUG
     okhttp3: DEBUG
+    org.apache.http: DEBUG
+    org.springframework.cloud.openfeign: TRACE
   pattern:
     console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(%logger{36}){cyan} - %msg%n"
