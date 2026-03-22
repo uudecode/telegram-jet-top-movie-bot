@@ -15,3 +15,12 @@ kinopoisk:
 backup:
   path: /usr/local/var/db/db.json
 
+logging:
+  level:
+    root: INFO
+    ru.poseidonnet: DEBUG
+    org.springframework.web: ERROR
+    org.telegram: DEBUG
+    okhttp3: DEBUG
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(%logger{36}){cyan} - %msg%n"
