@@ -3,6 +3,6 @@ COPY src /home/app/src
 COPY pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
 
-FROM bitnami/java:latest
+FROM eclipse-temurin:17-jre-alpine
 COPY --from=build /home/app/target/jet-movie-top-bot-1.0-SNAPSHOT.jar /usr/local/lib/jet-movie-top-bot.jar
 ENTRYPOINT ["java","-jar","/usr/local/lib/jet-movie-top-bot.jar"]
