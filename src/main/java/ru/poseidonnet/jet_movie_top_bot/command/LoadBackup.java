@@ -25,7 +25,6 @@ public class LoadBackup implements Command {
             backup = commandArgs;
         }
         pollsContainerService.loadBackup(backup);
-        pollsContainerService.saveBackup();
     }
 
     @Override
