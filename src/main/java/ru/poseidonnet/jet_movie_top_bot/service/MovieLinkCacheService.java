@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.poseidonnet.jet_movie_top_bot.kinopoisk.api.MovieFeignClient;
 import ru.poseidonnet.jet_movie_top_bot.kinopoisk.model.KinopoiskResponse;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,41 +33,55 @@ public class MovieLinkCacheService {
 
     public Map<Integer, KinopoiskResponse.Movie> getByIds(List<Integer> ids) {
         log.info("Requested details for {} movie IDs", ids.size());
-        List<Integer> newIds = ids.stream().filter(v -> !cache.containsKey(v)).toList();
+        if (ids.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        List<Integer> newIds = ids.stream()
+                .filter(Objects::nonNull)
+                .filter(id -> !cache.containsKey(id))
+                .distinct()
+                .toList();
+
+//        List<Integer> newIds = ids.stream().filter(v -> !cache.containsKey(v)).toList();
 
         if (!newIds.isEmpty()) {
-            try {
-                log.info("Fetching {} new IDs from Kinopoisk API: {}", newIds.size(), newIds);
-                KinopoiskResponse byIds = movieFeignClient.findByIds(apiKey, DAFAULT_FIELDS, newIds.size(), newIds);
-                if (byIds.getTotal() > 0) {
-                    log.info("API returned {} movies out of {} requested", byIds.getMovies().size(), newIds.size());
-                    byIds.getMovies().forEach(m -> {
-                        cache.put(m.getId(), m);
-                    });
-                    List<Integer> missingIds = newIds.stream()
-                            .filter(id -> !cache.containsKey(id))
-                            .toList();
-                    if (!missingIds.isEmpty()) {
-                        log.warn("Kinopoisk API did not find data for these IDs: {}", missingIds);
+            int batchSize = 200;
+
+            for (int i = 0; i < newIds.size(); i += batchSize) {
+                int end = Math.min(i + batchSize, newIds.size());
+                List<Integer> batch = newIds.subList(i, end);
+
+                try {
+                    log.info("Fetching batch from Kinopoisk: {} to {} (size: {})", i, end, batch.size());
+
+                    KinopoiskResponse response = movieFeignClient.findByIds(apiKey, DAFAULT_FIELDS, batch.size(), batch);
+
+                    if (response != null && response.getMovies() != null) {
+                        response.getMovies().stream()
+                                .filter(Objects::nonNull)
+                                .forEach(m -> cache.put(m.getId(), m));
                     }
+                } catch (Exception e) {
+                    log.error("Failed to fetch batch {} - {}: {}", i, end, e.getMessage());
                 }
-            } catch (Exception e) {
-                log.error("Error while calling Kinopoisk API for IDs {}: {}", newIds, e.getMessage());
             }
         }
-        Map<Integer, KinopoiskResponse.Movie> result = ids.stream()
+
+        return ids.stream()
                 .filter(Objects::nonNull)
                 .filter(id -> {
                     boolean exists = cache.containsKey(id);
                     if (!exists) {
-                        log.debug("Movie ID {} is missing in final result (not found in API/Cache)", id);
+                        log.debug("Movie ID {} not found in Cache/API after all attempts", id);
                     }
                     return exists;
                 })
-                .collect(Collectors.toMap(i -> i, cache::get, (existing, replacement) -> existing));
+                .collect(Collectors.toMap(
+                        id -> id,
+                        cache::get,
+                        (existing, replacement) -> existing
+                ));
 
-        log.info("Returning map with {} found movies", result.size());
-        return result;
     }
 
 
